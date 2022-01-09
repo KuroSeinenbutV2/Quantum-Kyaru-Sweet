@@ -783,14 +783,14 @@ static const struct seq_operations proc_tid_maps_op_sultanpid = {
 
 static int pid_maps_open(struct inode *inode, struct file *file)
 {
-	if (sultan_pid_map)
+	if (sultan_pid)
 		return do_maps_open(inode, file, &proc_pid_maps_op_sultanpid);
 	else return do_maps_open(inode, file, &proc_pid_maps_op);
 }
 
 static int tid_maps_open(struct inode *inode, struct file *file)
 {
-	if (sultan_tid_map)
+	if (sultan_tid)
 		return do_maps_open(inode, file, &proc_tid_maps_op_sultanpid);
 	else
 		return do_maps_open(inode, file, &proc_tid_maps_op);
@@ -2508,9 +2508,23 @@ static const struct seq_operations proc_pid_numa_maps_op = {
 	.show   = show_pid_numa_map,
 };
 
+static const struct seq_operations proc_pid_numa_maps_op_sultanpid = {
+	.start  = m_start_pid,
+	.next   = m_next_pid,
+	.stop   = m_stop,
+	.show   = show_pid_numa_map,
+};
+
 static const struct seq_operations proc_tid_numa_maps_op = {
 	.start  = m_start,
 	.next   = m_next,
+	.stop   = m_stop,
+	.show   = show_tid_numa_map,
+};
+
+static const struct seq_operations proc_tid_numa_maps_op_sultanpid = {
+	.start  = m_start_pid,
+	.next   = m_next_pid,
 	.stop   = m_stop,
 	.show   = show_tid_numa_map,
 };
@@ -2524,12 +2538,18 @@ static int numa_maps_open(struct inode *inode, struct file *file,
 
 static int pid_numa_maps_open(struct inode *inode, struct file *file)
 {
-	return numa_maps_open(inode, file, &proc_pid_numa_maps_op);
+	if (sultan_pid_map)
+		return numa_maps_open(inode, file, &proc_pid_numa_maps_op_sultanpid);
+	else
+		return numa_maps_open(inode, file, &proc_pid_numa_maps_op);
 }
 
 static int tid_numa_maps_open(struct inode *inode, struct file *file)
 {
-	return numa_maps_open(inode, file, &proc_tid_numa_maps_op);
+	if (sultan_tid_map)
+		return numa_maps_open(inode, file, &proc_tid_numa_maps_op_sultanpid);
+	else
+		return numa_maps_open(inode, file, &proc_tid_numa_maps_op);
 }
 
 const struct file_operations proc_pid_numa_maps_operations = {
