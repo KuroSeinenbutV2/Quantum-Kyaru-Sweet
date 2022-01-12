@@ -24,26 +24,69 @@ MODULE_AUTHOR("ZyCromerZ");
 MODULE_DESCRIPTION("zyc taskmmu");
 MODULE_VERSION("0.0.1");
 
-bool sultan_pid = false;
+bool __read_mostly sultan_pid = false;
 module_param(sultan_pid, bool, 0644);
 
-bool sultan_pid_map = false;
+bool __read_mostly sultan_pid_map = false;
 module_param(sultan_pid_map, bool, 0644);
 
-bool sultan_pid_shrink = false;
+bool __read_mostly sultan_pid_shrink = false;
 module_param(sultan_pid_shrink, bool, 0644);
 
-bool sultan_tid = false;
+bool __read_mostly sultan_tid = false;
 module_param(sultan_tid, bool, 0644);
 
-bool sultan_tid_map = false;
+bool __read_mostly sultan_tid_map = false;
 module_param(sultan_tid_map, bool, 0644);
+
+static int __init read_sultan_pid(char *s)
+{
+    int status;
+	if (s)
+		status = simple_strtoul(s, NULL, 0);
+		if ( status > 0 ) {
+			sultan_pid = true;
+            sultan_pid_map = true;
+		} else {
+			sultan_pid = false;
+            sultan_pid_map = false;
+        }
+	return 1;
+}
+__setup("zyc.sultan_pid=", read_sultan_pid);
+
+static int __init read_sultan_tid(char *s)
+{
+    int status;
+	if (s)
+		status = simple_strtoul(s, NULL, 0);
+		if ( status > 0 ) {
+			sultan_tid = true;
+            sultan_tid_map = true;
+		} else {
+			sultan_tid = false;
+            sultan_tid_map = false;
+        }
+	return 1;
+}
+__setup("zyc.sultan_tid=", read_sultan_tid);
+
+static int __init read_sultan_shrink(char *s)
+{
+    int status;
+	if (s)
+		status = simple_strtoul(s, NULL, 0);
+		if ( status > 0 ) {
+			sultan_pid_shrink = true;
+		} else {
+			sultan_pid_shrink = false;
+        }
+	return 1;
+}
+__setup("zyc.sultan_shrink=", read_sultan_shrink);
 
 static int __init prepare_driver_init(void) {
  printk(KERN_INFO "zyc taskmmu initialized");
- sultan_pid_map = false;
- sultan_pid_shrink = false;
- sultan_tid_map = false;
  return 0;
 }
 static void __exit prepare_driver_exit(void) {
