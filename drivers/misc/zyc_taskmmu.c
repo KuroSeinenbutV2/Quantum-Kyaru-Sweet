@@ -41,15 +41,16 @@ static int __init read_sultan_pid(char *s)
     int status;
 	if (s)
 		status = simple_strtoul(s, NULL, 0);
-		if ( status > 0 ) {
-			sultan_pid = true;
-            sultan_pid_map = true;
-			sultan_pid_smap = true;
-		} else {
-			sultan_pid = false;
-            sultan_pid_map = false;
-			sultan_pid_smap = false;
-        }
+
+	if ( status > 0 ) {
+		sultan_pid = true;
+		sultan_pid_map = true;
+		sultan_pid_smap = true;
+	} else {
+		sultan_pid = false;
+		sultan_pid_map = false;
+		sultan_pid_smap = false;
+	}
 	return 1;
 }
 __setup("zyc.sultan_pid=", read_sultan_pid);
@@ -59,11 +60,12 @@ static int __init read_sultan_shrink(char *s)
     int status;
 	if (s)
 		status = simple_strtoul(s, NULL, 0);
-		if ( status > 0 ) {
-			sultan_pid_shrink = true;
-		} else {
-			sultan_pid_shrink = false;
-        }
+
+	if ( status > 0 ) {
+		sultan_pid_shrink = true;
+	} else {
+		sultan_pid_shrink = false;
+	}
 	return 1;
 }
 __setup("zyc.sultan_shrink=", read_sultan_shrink);
