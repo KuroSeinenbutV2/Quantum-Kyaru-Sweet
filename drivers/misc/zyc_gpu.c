@@ -24,8 +24,11 @@ MODULE_AUTHOR("ZyCromerZ");
 MODULE_DESCRIPTION("zyc gpu");
 MODULE_VERSION("0.0.1");
 
-bool __read_mostly use_backport_option = false;
-module_param(use_backport_option, bool, 0644);
+bool __read_mostly kgsl_old_check_gpuaddr = true;
+module_param(kgsl_old_check_gpuaddr, bool, 0644);
+
+bool __read_mostly kgsl_old_close = true;
+module_param(kgsl_old_close, bool, 0644);
 
 static int __init prepare_driver_init(void) {
  printk(KERN_INFO "zyc gpu initialized");

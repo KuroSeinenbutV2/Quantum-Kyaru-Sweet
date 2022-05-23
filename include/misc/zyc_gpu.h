@@ -14,4 +14,5 @@
  *
  */
 
-extern bool use_backport_option;
+extern bool kgsl_old_check_gpuaddr;
+extern bool kgsl_old_close;
