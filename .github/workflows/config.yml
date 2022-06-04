@@ -1,0 +1,39 @@
+name: sweet CI
+
+on: # [push]
+#  release:
+#    types: [published]
+#  push:
+#    branches:
+#      - master
+#    paths:
+#      - '.config'
+#  schedule:
+#    - cron: 0 8 * * 5
+# Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  watch:
+    types: [started]
+
+env:
+  TG_CHAT_ID:  ${{ secrets.CHAT_ID }}
+  TG_TOKEN: ${{ secrets.TOKEN }}
+  TZ: Asia/Jakarta
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy-20211029
+    steps:
+        - name: Checkout
+          uses: actions/checkout@master
+
+        - name: Initialize environment
+          run: |
+           chmod +x builder/initialize
+           bash builder/initialize
+        - name: Starting build
+          run: |
+           chmod +x builder/kernel.sh
+           bash builder/kernel.sh
