@@ -728,11 +728,11 @@ static ssize_t store_##file_name					\
 	struct cpufreq_policy new_policy;				\
 									\
 	if (&policy->object == &policy->min				\
-			&& task_is_booster(current))			\
+			&& task_is_zygote(current))			\
 		return count;						\
 									\
 	if (&policy->object == &policy->max				\
-			&& task_is_booster(current))			\
+			&& task_is_zygote(current))			\
 		return count;						\
 									\
 	memcpy(&new_policy, policy, sizeof(*policy));			\
