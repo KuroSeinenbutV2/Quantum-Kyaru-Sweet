@@ -52,7 +52,7 @@ Ai1() {
     git clone --depth=1 http://github.com/kenhv/gcc-arm64 -b master "${KDIR}"/gcc64
 
 
-    LLD_VER=$("${KDIR}"/clang/ld.lld -v | head -n1 | sed 's/(compatible with [^)]*)//' |
+    LLD_VER=$("${KDIR}"/clang/bin/ld.lld -v | head -n1 | sed 's/(compatible with [^)]*)//' |
             head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
     KBUILD_COMPILER_STRING=$("${KDIR}"/clang/bin/clang --version | head -n 1)
     export KBUILD_COMPILER_STRING
