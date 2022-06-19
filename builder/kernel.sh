@@ -26,7 +26,7 @@ tgs() {
     curl -fsSL -X POST -F document=@"$1" https://api.telegram.org/bot"${TG_TOKEN}"/sendDocument \
         -F "chat_id=-1001754559150" \
         -F "parse_mode=Markdown" \
-        -F "caption=$2 | *SHA1*: \`$SHA1\`"
+        -F "caption=$2 *SHA1*: \`$SHA1\`"
 }
 
 # Default defconfig to use for builds.
@@ -36,22 +36,27 @@ CONFIG="sweet_defconfig"
 KDIR=$(pwd)
 
 # Device and codename.
-DEVICE="Redmi Note 10 Pro"
+DEVICE="Redmi Note 10Pro"
 CODENAME="sweet"
+
 # User and Host name
-export KBUILD_BUILD_USER=KuroSeinen
-export KBUILD_BUILD_HOST=XZI-TEAM
+BUILDER=KuroSeinen
+HOST=XZI-TEAM
 
 # Number of jobs to run.
 PROCS=$(nproc --all)
 
-Ai1() {
-
+# Clone repo and Build Kernel.
+clone(){
+    echo -e "\n\e[1;93m[*] Cloning clang, gcc, anykernel! \e[0m"
     git clone --depth=1 https://gitlab.com/ElectroPerf/atom-x-clang -b atom-15 "${KDIR}"/clang
     git clone --depth=1 http://github.com/kenhv/gcc-arm64 -b master "${KDIR}"/gcc32
     git clone --depth=1 http://github.com/kenhv/gcc-arm64 -b master "${KDIR}"/gcc64
+    git clone --depth=1 https://github.com/KuroSeinenbutV2/AnyKernel3 "${KDIR}"/anykernel3
+    echo -e "\n\e[1;32m[✓] Cloning done! \e[0m"
+}
 
-
+buildkernel(){
     LLD_VER=$("${KDIR}"/clang/bin/ld.lld -v | head -n1 | sed 's/(compatible with [^)]*)//' |
             head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
     KBUILD_COMPILER_STRING=$("${KDIR}"/clang/bin/clang --version | head -n 1)
@@ -79,12 +84,10 @@ Ai1() {
         HOSTCXX=clang++
     )
 
-    git clone --depth=1 https://github.com/KuroSeinenbutV2/AnyKernel3 "${KDIR}"/anykernel3
-
     export KBUILD_BUILD_VERSION=$GITHUB_RUN_NUMBER
     export KBUILD_BUILD_HOST=$HOST
     export KBUILD_BUILD_USER=$BUILDER
-    zipn=QuantumKyaru-TEST-${CODENAME}
+    zipn=[AOSP][BETA]-QuantumKyaru-${CODENAME}
 
     echo -e "\n\e[1;93m[*] Regenerating defconfig! \e[0m"
     make "${MAKE[@]}" $CONFIG
@@ -93,6 +96,8 @@ Ai1() {
 
 
 tg "
+<b>Builder Name</b>: <code>${BUILDER}</code>
+<b>Builder Host</b>: <code>${HOST}</code> 
 <b>Build Number</b>: <code>$GITHUB_RUN_NUMBER</code>
 <b>Device</b>: <code>${DEVICE}</code>
 <b>Kernel Version</b>: <code>$(make kernelversion 2>/dev/null)</code>
@@ -101,7 +106,6 @@ tg "
 <b>Compiler</b>: <code>${KBUILD_COMPILER_STRING}</code>
 <b>Linker</b>: <code>${LLD_VER}</code>
 "
-
 
     echo -e "\n\e[1;93m[*] Building Kernel! \e[0m"
     BUILD_START=$(date +"%s")
@@ -130,5 +134,5 @@ tg "
     echo -e "\n\e[1;32m[✓] Built zip! \e[0m"
         tgs "${zipn}.zip"
 }
-
-Ai1
+clone
+buildkernel
