@@ -144,6 +144,25 @@ EXPORT_SYMBOL(zero_pfn);
 
 unsigned long highest_memmap_pfn __read_mostly;
 
+#ifdef CONFIG_UKSM
+unsigned long uksm_zero_pfn __read_mostly;
+EXPORT_SYMBOL_GPL(uksm_zero_pfn);
+struct page *empty_uksm_zero_page;
+
+static int __init setup_uksm_zero_page(void)
+{
+	empty_uksm_zero_page = alloc_pages(__GFP_ZERO & ~__GFP_MOVABLE, 0);
+	if (!empty_uksm_zero_page)
+		panic("Oh boy, that early out of memory?");
+
+	SetPageReserved(empty_uksm_zero_page);
+	uksm_zero_pfn = page_to_pfn(empty_uksm_zero_page);
+
+	return 0;
+}
+core_initcall(setup_uksm_zero_page);
+#endif
+
 /*
  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
  */
@@ -153,6 +172,7 @@ static int __init init_zero_pfn(void)
 	return 0;
 }
 early_initcall(init_zero_pfn);
+
 
 
 #if defined(SPLIT_RSS_COUNTING)
@@ -1081,6 +1101,9 @@ copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 		get_page(page);
 		page_dup_rmap(page, false);
 		rss[mm_counter(page)]++;
+
+		/* Should return NULL in vm_normal_page() */
+		uksm_bugon_zeropage(pte);
 	} else if (pte_devmap(pte)) {
 		page = pte_page(pte);
 
@@ -1094,6 +1117,8 @@ copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 			page_dup_rmap(page, false);
 			rss[mm_counter(page)]++;
 		}
+	} else {
+		uksm_map_zero_page(pte);
 	}
 
 out_set_pte:
@@ -1387,8 +1412,10 @@ again:
 			ptent = ptep_get_and_clear_full(mm, addr, pte,
 							tlb->fullmm);
 			tlb_remove_tlb_entry(tlb, pte, addr);
-			if (unlikely(!page))
+			if (unlikely(!page)) {
+				uksm_unmap_zero_page(ptent);
 				continue;
+			}
 
 			if (!PageAnon(page)) {
 				if (pte_dirty(ptent)) {
@@ -2538,6 +2565,7 @@ static inline bool cow_user_page(struct page *dst, struct page *src,
 
 	if (likely(src)) {
 		copy_user_highpage(dst, src, addr, vma);
+		uksm_cow_page(vma, src);
 		return true;
 	}
 
@@ -2771,6 +2799,7 @@ static int wp_page_copy(struct vm_fault *vmf)
 							      vmf->address);
 		if (!new_page)
 			goto out;
+		uksm_cow_pte(vma, vmf->orig_pte);
 	} else {
 		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
 				vmf->address);
@@ -2812,7 +2841,9 @@ static int wp_page_copy(struct vm_fault *vmf)
 						mm_counter_file(old_page));
 				inc_mm_counter_fast(mm, MM_ANONPAGES);
 			}
+			uksm_bugon_zeropage(vmf->orig_pte);
 		} else {
+			uksm_unmap_zero_page(vmf->orig_pte);
 			inc_mm_counter_fast(mm, MM_ANONPAGES);
 		}
 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
